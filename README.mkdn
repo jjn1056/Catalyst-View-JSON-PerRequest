@@ -31,6 +31,15 @@ Catalyst::View::JSON::PerRequest - JSON View that owns its data
 
 # DESCRIPTION
 
+This is a [Catalyst::View](https://metacpan.org/pod/Catalyst::View) that produces JSON response from a given model.
+It differs from some of the more classic JSON producing views (such as
+[Catalyst::View::JSON](https://metacpan.org/pod/Catalyst::View::JSON) in that is is a per request view (one view for each
+request) and it defines a 'data' method to hold information to use to produce
+a view.
+
+It also generates some local response helpers.  You may or may not find this
+approach leads to cleaner code.
+
 # METHODS
 
 This view defines the following methods

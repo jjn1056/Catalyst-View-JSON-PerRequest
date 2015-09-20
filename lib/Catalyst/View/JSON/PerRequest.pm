@@ -111,6 +111,15 @@ Catalyst::View::JSON::PerRequest - JSON View that owns its data
 
 =head1 DESCRIPTION
 
+This is a L<Catalyst::View> that produces JSON response from a given model.
+It differs from some of the more classic JSON producing views (such as
+L<Catalyst::View::JSON> in that is is a per request view (one view for each
+request) and it defines a 'data' method to hold information to use to produce
+a view.
+
+It also generates some local response helpers.  You may or may not find this
+approach leads to cleaner code.
+
 =head1 METHODS
 
 This view defines the following methods
