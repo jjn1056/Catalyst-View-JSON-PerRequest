@@ -84,25 +84,30 @@ Catalyst::View::JSON::PerRequest - JSON View that owns its data
 
 =head1 SYNOPSIS
 
-  sub root :Chained(/) CaptureArgs(0) {
-    my ($self, $c) = @_;
-    $c->view->data->set(z=>1);
-  }
+    MyApp->inject_components(
+      'View::JSON' => { from_component => 'Catalyst::View::JSON::PerRequest' }
+    );
 
-  sub midpoint :Chained(root) CaptureArgs(0) {
-    my ($self, $c) = @_;
-    $c->view->data->set(y=>1);
+    # In a controller...
 
-  }
+    sub root :Chained(/) CaptureArgs(0) {
+      my ($self, $c) = @_;
+      $c->view('JSON')->data->set(z=>1);
+    }
 
-  sub endpoint :Chained(midpoint) Args(0) {
-    my ($self, $c) = @_;
-    $c->view->send_created({
+    sub midpoint :Chained(root) CaptureArgs(0) {
+      my ($self, $c) = @_;
+      $c->view('JSON')->data->set(y=>1);
+    }
+
+    sub endpoint :Chained(midpoint) Args(0) {
+      my ($self, $c) = @_;
+      $c->view('JSON')->send_created({
         a => 1,
         b => 2,
         c => 3,
       });
-  }
+    }
 
 =head1 DESCRIPTION
 
