@@ -1,4 +1,14 @@
 # This file documents the revision history for Perl extension Catalyst::View::JSON::PerRequest
 
+0.002 - 2014-09-24
+  - Shorten the response helpers and new helpers to make the common
+    patten of detaching on response easier.
+  - change 'send' to 'response' since I think its less deceptive ('send'
+    didn't actually send anything it just set the response.)  This is a
+    breaking change if you used the send method (change to response or
+    use a helper).
+  - added a 'process' method to be more compatible with current practice
+    so this can work with the 'RenderView' action class, for example.
+
 0.001 - 2015-09-20
   - First Release 

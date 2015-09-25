@@ -45,9 +45,18 @@ has json_class => (
 has json_init_args => (
   is=>'ro',
   required=>1,
+  lazy=>1,
   default=>sub {
-    return \%JSON_INIT_ARGS;
+    my $self = shift;
+    my %init = (%JSON_INIT_ARGS, $self->has_json_extra_init_args ?
+      %{$self->json_extra_init_args} : ());
+
+    return \%init;
   });
+
+has json_extra_init_args => (
+  is=>'ro',
+  predicate=>'has_json_extra_init_args');
 
 has callback_param => ( is=>'ro', predicate=>'has_callback_param');
 
@@ -102,7 +111,7 @@ Catalyst::View::JSON::PerRequest - JSON View that owns its data
 
     sub endpoint :Chained(midpoint) Args(0) {
       my ($self, $c) = @_;
-      $c->view('JSON')->send_created({
+      $c->view('JSON')->created({
         a => 1,
         b => 2,
         c => 3,
@@ -137,27 +146,46 @@ L<Catalyst> application as long as it does the method "TO_JSON".
 You may only set the view data model once.  If you don't set it and just call
 methods on it, the default view model is automatically used.
 
-=head2 send
+=head2 res
 
-    $view->send($status, @headers, \%data||$object);
-    $view->send($status, \%data||$object);
-    $view->send(\%data||$object);
-    $view->send($status);
-    $view->send($status, @headers);
+=head2 response
 
-Used to send a response.  Calling this method will setup an http status, finalize
+    $view->response($status, @headers, \%data||$object);
+    $view->response($status, \%data||$object);
+    $view->response(\%data||$object);
+    $view->response($status);
+    $view->response($status, @headers);
+
+Used to setup a response.  Calling this method will setup an http status, finalize
 headers and set a body response for the JSON.  Content type will be set to
 'application/json' automatically (you don't need to set this in a header).
 
-=head2 Method '->send' Helpers
+=head2 Method '->response' Helpers
 
 We map status codes from L<HTTP::Status> into methods to make sending common
 request types more simple and more descriptive.  The following are the same:
 
-    $view->send(200, @args);
-    $view->send_ok(@args);
+    $c->view->response(200, @args);
+    $c->view->ok(@args);
+
+    do { $c->view->response(200, @args); $c->detach };
+    $c->view->detach_ok(@args);
 
 See L<HTTP::Status> for a full list of all the status code helpers.
+
+=head2 render ($data)
+
+Given a Perl data will return the JSON encoded version.
+
+    my $json = $c->view->render(\%data);
+
+Should be a reference or object that does 'TO_JSON'
+
+=head2 process
+
+used as a target for $c->forward.  This is mostly here for compatibility with some
+existing methodology.  For example allows using this view with the Renderview action
+class (common practice).   I'd consider it a depracated approach, personally.
 
 =head1 ATTRIBUTES
 
@@ -199,6 +227,12 @@ Arguments used to initialize the L</json_class>.  Defaults to:
     our %JSON_INIT_ARGS = (
       utf8 => 1,
       convert_blessed => 1);
+
+=head2 json_extra_init_args
+
+Allows you to 'tack on' some arguments to the JSON initialization without
+messing with the defaults.  Unless you really need to override the defaults
+this is the method you should use.
 
 =head1 UTF-8 NOTES
 

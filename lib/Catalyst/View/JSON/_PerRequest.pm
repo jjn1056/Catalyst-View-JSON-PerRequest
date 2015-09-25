@@ -30,7 +30,9 @@ sub callback_param {
   $self->{callback_param} = $value;
 }
 
-sub send {    
+sub res { return shift->response(@_) }
+
+sub response {
   my ($self, @proto) = @_;
   my ($status, @headers) = ();
   
@@ -62,10 +64,10 @@ sub send {
   my $res = $self->{ctx}->response;
 
   $res->headers->push_headers(@headers) if @headers;
-  $res->status($status);
+  $res->status($status) unless $res->status != 200; # Catalyst default is 200...
   $res->content_type('application/json') unless $res->content_type;
 
-  my $json = $self->{json}->encode($self->data);
+  my $json = $self->render($self->data);
 
   if(my $param = $self->{callback_param}) {
     my $cb = $c->req->query_parameter($cbparam);
@@ -74,13 +76,25 @@ sub send {
   }
 
   $res->body($json) unless $res->has_body;
+  return $self->{ctx}->detach if $self->{auto_detach};
+}
+
+sub render {
+  my ($self, $data) = @_;
+  return $self->{json}->encode($self->data);
+}
+
+sub process {
+  my ( $self, $c ) = @_;
+  $self->send;
 }
 
 # Send Helpers.
 foreach my $helper( grep { $_=~/^http/i} @HTTP::Status::EXPORT_OK) {
   my $subname = lc $helper;
   $subname =~s/http_//i;  
-  eval "sub send_$subname { return shift->send(HTTP::Status::$helper,\@_) }";
+  eval "sub $subname { return shift->response(HTTP::Status::$helper,\@_) }";
+  eval "sub detach_$subname { my \$self=shift; \$self->response(HTTP::Status::$helper,\@_); \$self->{ctx}->detach }";
 }
 
 1;

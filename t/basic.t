@@ -36,7 +36,7 @@ use Test::Most;
 
   sub example :Local Args(0) {
     my ($self, $c) = @_;
-    $c->view->send_ok({
+    $c->view->ok({
         a => 1,
         b => 2,
         c => 3,
@@ -48,12 +48,12 @@ use Test::Most;
     $c->view->data('Person');
     $c->view->data->last_name('nap');
     $c->view->data->first_name('john');
-    $c->view->send_ok({age => 44});
+    $c->view->ok({age => 44});
   }
 
   sub object :Local Args(0) {
     my ($self, $c) = @_;
-    $c->view->send_ok(
+    $c->view->ok(
       $c->model('Person',
         first_name => 'M', 
         last_name => 'P',
@@ -73,7 +73,7 @@ use Test::Most;
 
   sub b :Chained(a) Args(0) {
     my ($self, $c) = @_;
-    $c->view->send_created({
+    $c->view->created({
         a => 1,
         b => 2,
         c => 3,
