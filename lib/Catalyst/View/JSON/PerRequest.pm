@@ -4,7 +4,7 @@ use Moo;
 use CatalystX::InjectComponent;
 use Catalyst::View::JSON::_PerRequest;
 
-our $VERSION = 0.003;
+our $VERSION = 0.004;
 our $DEFAULT_JSON_CLASS = 'JSON::MaybeXS';
 our $DEFAULT_VIEW_MODEL = 'JSON::ViewData';
 our %JSON_INIT_ARGS = (

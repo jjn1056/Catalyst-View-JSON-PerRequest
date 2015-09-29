@@ -42,14 +42,20 @@ sub response {
     $status = 200;
   }
 
-  if(ref $proto[$#proto] eq 'HASH') {
+  if(
+    scalar(@proto) &&
+    ref $proto[$#proto] eq 'HASH'
+  ) {
     my $var = pop @proto;
     foreach my $key (keys %$var) {
       $self->data->$key($var->{$key});
     }
   }
 
-  if(Scalar::Util::blessed($proto[$#proto])) {
+  if(
+    scalar(@proto) &&
+    Scalar::Util::blessed($proto[$#proto])
+  ) {
     my $obj = pop @proto;
     $self->data($obj);
   }

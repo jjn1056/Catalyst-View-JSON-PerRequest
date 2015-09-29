@@ -1,5 +1,8 @@
 # This file documents the revision history for Perl extension Catalyst::View::JSON::PerRequest
 
+0.004 - 2015-09-29
+  - Bugfix for older Perl version compatibility
+
 0.003 - 2015-09-25
   - Fixed incorrect $VERSION in last release
 
