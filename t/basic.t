@@ -60,6 +60,22 @@ use Test::Most;
         age => 20));
   }
 
+  sub error_global :Local Args(0) {
+    my ($self, $c) = @_;
+    $c->view->ok( bless +{}, 'Catalyst::View::JSON::PerRequest::Dummy');
+  }
+
+  sub error_local :Local Args(0) {
+    my ($self, $c) = @_;
+
+    $c->view->handle_encode_error(sub {
+      my ($view, $err) = @_;
+      $view->detach_service_unavailable({ error => "$err"});
+    });
+
+    $c->view->ok( bless +{}, 'Catalyst::View::JSON::PerRequest::Dummy');
+  }
+
   sub root :Chained(/) CaptureArgs(0) {
     my ($self, $c) = @_;
     $c->view->data->set(z=>1);
@@ -89,6 +105,9 @@ use Test::Most;
   MyApp->config(
     default_view =>'JSON',
     'Controller::Root' => { namespace => '' },
+    'View::JSON' => {
+      handle_encode_error => \&Catalyst::View::JSON::PerRequest::HANDLE_ENCODE_ERROR,
+    },
   );
 
   MyApp->setup;
@@ -143,6 +162,22 @@ use JSON::MaybeXS;
   is $json{lname}, 'P';
   is $json{age}, 20;
   ok $json{time};
+}
+
+{
+  ok my ($res, $c) = ctx_request( '/error_global' );
+  is $res->code, 500;
+  
+  my %json = %{ decode_json $res->content };
+  ok $json{error};
+}
+
+{
+  ok my ($res, $c) = ctx_request( '/error_local' );
+  is $res->code, 503;
+  
+  my %json = %{ decode_json $res->content };
+  ok $json{error};
 }
 
 done_testing;

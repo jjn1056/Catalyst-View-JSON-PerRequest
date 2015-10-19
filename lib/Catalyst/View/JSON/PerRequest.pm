@@ -4,7 +4,7 @@ use Moo;
 use CatalystX::InjectComponent;
 use Catalyst::View::JSON::_PerRequest;
 
-our $VERSION = 0.004;
+our $VERSION = 0.005;
 our $DEFAULT_JSON_CLASS = 'JSON::MaybeXS';
 our $DEFAULT_VIEW_MODEL = 'JSON::ViewData';
 our %JSON_INIT_ARGS = (
@@ -27,6 +27,15 @@ has json => (
     return $self->json_class->new(
       $self->json_init_args);
   });
+
+sub HANDLE_ENCODE_ERROR {
+  my ($view, $err) = @_;
+  $view->detach_internal_server_error({ error => "$err"});
+};
+
+has handle_encode_error => (
+  is=>'ro',
+  predicate=>'has_handle_encode_error');
 
 has default_view_model => (
   is=>'ro',
@@ -81,6 +90,7 @@ sub build_per_context_instance {
     ctx=>$c,
     parent=>$self,
     json=>$self->json,
+    ($self->has_handle_encode_error ? (handle_encode_error=>$self->handle_encode_error) :()),
     ($self->has_callback_param ? (callback_param=>$self->callback_param) :())
   }, 'Catalyst::View::JSON::_PerRequest';
 }
@@ -233,6 +243,77 @@ Arguments used to initialize the L</json_class>.  Defaults to:
 Allows you to 'tack on' some arguments to the JSON initialization without
 messing with the defaults.  Unless you really need to override the defaults
 this is the method you should use.
+
+=head2 handle_encode_error
+
+A reference to a subroutine that is called when there is a failure to encode
+the data given into a JSON format.  This can be used globally as an attribute
+on the defined configuration for the view, and you can set it or overide the
+global settings on a context basis.
+
+Setting this optional attribute will capture and handle error conditions.  We
+will NOT bubble the error up to the global L<Catalyst> error handling (we don't
+set $c->error for example).  If you want that you need to set it yourself in
+a custom handler, or don't define one.
+
+The subroutine receives two arguments: the view object and the exception. You
+must setup a new, valid response.  For example:
+
+    package MyApp::View::JSON;
+
+    use Moo;
+    extends 'Catalyst::View::JSON::PerRequest';
+
+    package MyApp;
+
+    use Catalyst;
+
+    MyApp->config(
+      default_view =>'JSON',
+      'View::JSON' => {
+        handle_encode_error => sub {
+          my ($view, $err) = @_;
+          $view->detach_bad_request({ err => "$err"});
+        },
+      },
+    );
+
+    MyApp->setup;
+
+Or setup/override per context:
+
+    sub error :Local Args(0) {
+      my ($self, $c) = @_;
+
+      $c->view->handle_encode_error(sub {
+          my ($view, $err) = @_;
+          $view->detach_bad_request({ err => "$err"});
+        });
+
+      $c->view->ok( $bad_data );
+    }
+
+B<NOTE> If you mess up the return value (you return something that can't be
+encoded) a second exception will occur which will NOT be handled and will then
+bubble up to the main application.
+
+B<NOTE> The view package contains a global function to a usable default
+error handler, should you wish to use something consistent and reasonably
+valid.  Example:
+
+    MyApp->config(
+      default_view =>'JSON',
+      'View::JSON' => {
+        handle_encode_error => \&Catalyst::View::JSON::PerRequest::HANDLE_ENCODE_ERROR,
+      },
+    );
+
+The example handler is defined like this:
+
+  sub HANDLE_ENCODE_ERROR {
+    my ($view, $err) = @_;
+    $view->detach_internal_server_error({ error => "$err"});
+  }
 
 =head1 UTF-8 NOTES
 

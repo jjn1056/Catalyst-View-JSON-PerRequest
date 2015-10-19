@@ -10,8 +10,8 @@ sub data {
       die "Can't set view data attribute if its already set";
     } else {
       $data = $self->{ctx}->model($data) unless ref $data;
-      die "Model $data does not do a required method 'TO_JSON'"
-        unless $data->can('TO_JSON');
+      #die "Model $data does not do a required method 'TO_JSON'"
+      #  unless $data->can('TO_JSON');
 
       return $self->{data} = $data;
     }
@@ -25,9 +25,20 @@ sub data {
   }
 }
 
+sub handle_encode_error {
+  my ($self, $value) = @_;
+  if(defined $value) {
+    $self->{handle_encode_error} = $value;
+  }
+  return $self->{handle_encode_error};
+}
+
 sub callback_param {
   my ($self, $value) = @_;
-  $self->{callback_param} = $value;
+  if(defined $value) {
+    $self->{callback_param} = $value;
+  }
+  return $self->{callback_param};
 }
 
 sub res { return shift->response(@_) }
@@ -68,12 +79,11 @@ sub response {
     if $self->{ctx}->debug; 
 
   my $res = $self->{ctx}->response;
+  my $json = $self->render($self->data);
 
   $res->headers->push_headers(@headers) if @headers;
   $res->status($status) unless $res->status != 200; # Catalyst default is 200...
   $res->content_type('application/json') unless $res->content_type;
-
-  my $json = $self->render($self->data);
 
   if(my $param = $self->{callback_param}) {
     my $cb = $c->req->query_parameter($cbparam);
@@ -87,7 +97,18 @@ sub response {
 
 sub render {
   my ($self, $data) = @_;
-  return $self->{json}->encode($self->data);
+  my $json = eval {
+    $self->{json}->encode($self->data);
+  } || do {
+    if(my $cb = $self->handle_encode_error) {
+      delete $self->{data}; # Clear out any existing data since its not valid
+      return $cb->($self, $@);
+    } else {
+      # Bubble up the unhandled error
+      die $@;
+    }
+  };
+  return $json;
 }
 
 sub process {
