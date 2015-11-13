@@ -47,7 +47,9 @@ sub response {
   my ($self, @proto) = @_;
   my ($status, @headers) = ();
   
-  if(ref \$proto[0] eq 'SCALAR') {
+  if( (ref \$proto[0] eq 'SCALAR') and
+    Scalar::Util::looks_like_number($proto[0])
+  ){
     $status = shift @proto;
   } else {
     $status = 200;
@@ -61,9 +63,7 @@ sub response {
     foreach my $key (keys %$var) {
       $self->data->$key($var->{$key});
     }
-  }
-
-  if(
+  } elsif(
     scalar(@proto) &&
     Scalar::Util::blessed($proto[$#proto])
   ) {

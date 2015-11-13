@@ -4,7 +4,7 @@ use Moo;
 use CatalystX::InjectComponent;
 use Catalyst::View::JSON::_PerRequest;
 
-our $VERSION = 0.005;
+our $VERSION = 0.006;
 our $DEFAULT_JSON_CLASS = 'JSON::MaybeXS';
 our $DEFAULT_VIEW_MODEL = 'JSON::ViewData';
 our %JSON_INIT_ARGS = (
@@ -31,7 +31,7 @@ has json => (
 sub HANDLE_ENCODE_ERROR {
   my ($view, $err) = @_;
   $view->detach_internal_server_error({ error => "$err"});
-};
+}
 
 has handle_encode_error => (
   is=>'ro',
