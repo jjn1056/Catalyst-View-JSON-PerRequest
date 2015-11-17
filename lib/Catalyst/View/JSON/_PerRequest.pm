@@ -72,7 +72,7 @@ sub response {
   }
 
   if(@proto) {
-    @headers = @{$proto[0]};
+    @headers = @proto;
   }
 
   $self->{ctx}->stats->profile(begin => "=> JSON->send". ($status ? "($status)": ''))
@@ -81,7 +81,7 @@ sub response {
   my $res = $self->{ctx}->response;
   my $json = $self->render($self->data);
 
-  $res->headers->push_headers(@headers) if @headers;
+  $res->headers->push_header(@headers) if @headers;
   $res->status($status) unless $res->status != 200; # Catalyst default is 200...
   $res->content_type('application/json') unless $res->content_type;
 
