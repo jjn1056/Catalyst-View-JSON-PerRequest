@@ -1,6 +1,12 @@
 use Test::Most;
 
 {
+  package Catalyst::View::JSON::PerRequest::Dummy;
+
+  sub TO_JSON {
+    die 'Died in Catalyst::View::JSON::PerRequest::Dummy::TO_JSON';
+  }
+
   package MyApp::Model::Person;
 
   use Moo;
@@ -76,7 +82,7 @@ use Test::Most;
     $c->view->ok( bless +{}, 'Catalyst::View::JSON::PerRequest::Dummy');
   }
 
-  sub root :Chained(/) CaptureArgs(0) {
+  sub root :Chained('/') CaptureArgs(0) {
     my ($self, $c) = @_;
     $c->view->data->set(z=>1);
   }
