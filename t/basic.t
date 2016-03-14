@@ -1,6 +1,12 @@
 use Test::Most;
 
 {
+  package Catalyst::View::JSON::PerRequest::Dummy;
+
+  sub TO_JSON {
+    die 'Died in Catalyst::View::JSON::PerRequest::Dummy::TO_JSON';
+  }
+
   package MyApp::Model::Person;
 
   use Moo;
