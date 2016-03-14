@@ -1,5 +1,8 @@
 # This file documents the revision history for Perl extension Catalyst::View::JSON::PerRequest
 
+0.008 - 2016-03-14
+  - Pod fixes and fixes buggy test case (moltar++)
+  
 0.007 - 2015-11-16
   - Fixed another problem with submitting headers.
 
