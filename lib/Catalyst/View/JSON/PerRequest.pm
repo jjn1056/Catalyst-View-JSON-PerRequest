@@ -4,7 +4,7 @@ use Moo;
 use CatalystX::InjectComponent;
 use Catalyst::View::JSON::_PerRequest;
 
-our $VERSION = 0.008;
+our $VERSION = 0.009;
 our $DEFAULT_JSON_CLASS = 'JSON::MaybeXS';
 our $DEFAULT_VIEW_MODEL = 'JSON::ViewData';
 our %JSON_INIT_ARGS = (
@@ -155,6 +155,10 @@ L<Catalyst> application as long as it does the method "TO_JSON".
 
 You may only set the view data model once.  If you don't set it and just call
 methods on it, the default view model is automatically used.
+
+B<NOTE> In order to help prevent namespace collision, your custom view model is
+allowed to defined a method 'set' which is used to set attribute values on your
+model.  Set should take two arguments, a key and a value.
 
 =head2 res
 

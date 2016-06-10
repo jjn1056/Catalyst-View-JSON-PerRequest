@@ -61,7 +61,11 @@ sub response {
   ) {
     my $var = pop @proto;
     foreach my $key (keys %$var) {
-      $self->data->$key($var->{$key});
+      if($self->data->can('set')) {
+        $self->data->set($key,$var->{$key});
+      } else {
+        $self->data->$key($var->{$key});
+      }
     }
   } elsif(
     scalar(@proto) &&
